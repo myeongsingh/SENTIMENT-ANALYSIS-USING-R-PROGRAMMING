@@ -1,0 +1,66 @@
+Workflow
+Load Packages
+Required packages: NLP, tm, RColorBrewer, SnowballC, stringr, syuzhet.
+
+
+library(NLP)
+library(tm)
+library(RColorBrewer)
+library(SnowballC)
+library(stringr)
+library(syuzhet)
+Input Data
+Load the input CSV file containing social media responses.
+
+
+reviews <- read.csv(file.choose(), sep=",", header=T)
+abc <- as.matrix(reviews)
+Text Cleaning
+Clean the text data by removing symbols, numbers, punctuation, stopwords, and whitespace.
+
+
+abc <- str_remove_all(abc,"–|’|—|“|”")
+abc <- removeNumbers(abc)
+abc <- removePunctuation(abc)
+abc <- tolower(abc)
+abc <- removeWords(abc, c("now", "one", "will", "may", "says", "said", "also", "figure", "etc", "re", "can"))
+stopwords <- c("the", "and", stopwords("en"))
+abc <- removeWords(abc, stopwords)
+abc <- stripWhitespace(abc)
+abc <- wordStem(abc)
+Sentiment Analysis
+Analyze sentiment using syuzhet, bing, afinn, and nrc methods.
+
+
+syuzhet_score <- get_sentiment(review_text, method="syuzhet")
+bing_score <- get_sentiment(review_text, method="bing")
+afinn_score <- get_sentiment(review_text, method="afinn")
+nrc_score <- get_sentiment(review_text, method="nrc")
+comb_score <- cbind(syuzhet_score, bing_score, afinn_score, nrc_score)
+df <- as.data.frame(comb_score)
+Extreme Sentiment Analysis
+Identify texts with extreme negative and positive sentiments.
+
+
+syuz_neg <- which(syuzhet_score <= -5)
+syuz_posit <- which(syuzhet_score >= 4.5)
+result_neg <- cbind(syuz_neg, review_text[syuz_neg])
+result_posit <- cbind(syuz_posit, review_text[syuz_posit])
+Normalize Scores
+Normalize sentiment scores across different methods.
+
+
+norm_score <- cbind(
+    sign(syuzhet_score), 
+    sign(bing_score), 
+    sign(afinn_score),
+    sign(nrc_score)
+)
+Emotion Classification
+Classify emotions using the NRC Emotion Lexicon and visualize them.
+
+
+nrc_sentiment <- get_nrc_sentiment(review_text)
+sentisum <- colSums(nrc_sentiment)
+barplot(sentisum[1:10], col=rainbow(10), las=2, main="Emotions and Sentiments")
+pie(sentisum[1:10], col=brewer.pal(8,'Dark2'), labels=Lb, main="Emotions and Sentiment NRC S
